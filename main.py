@@ -40,6 +40,18 @@ class Player:
     def score(self):
         self.goals += 1
 
+    def reset(self):
+        self.dy = -1
+        # Set player position
+        if self.player == 1:
+            self.x = 50
+        else:
+            self.x = WIDTH - 50
+
+        self.y = (HEIGHT // 2) - self.length
+
+        self.rect = self.rect.move(self.x, self.y)
+
 
 class Ball:
     def __init__(self):
@@ -79,8 +91,12 @@ class Ball:
 
     def reset(self, p1, p2):
         print(f"P1: {p1.goals} P2: {p2.goals}")
+
         self.x = WIDTH / 2
         self.y = HEIGHT / 2
+
+        # p1.reset()
+        # p2.reset()
 
         # Initial starting Velocity & Direction
         self.dx = 0.5
