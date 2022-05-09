@@ -1,6 +1,7 @@
 import pygame
 import sys
 import random
+import numpy as np
 
 
 class Player:
@@ -18,7 +19,7 @@ class Player:
         if self.player == 1:
             self.x = 50
         else:
-            self.x = WIDTH - 50
+            self.x = WIDTH - 80
 
         self.y = (HEIGHT // 2) - self.length
 
@@ -57,8 +58,8 @@ class Ball:
     def __init__(self):
         self.radius = 5
 
-        self.x = WIDTH / 2
-        self.y = HEIGHT / 2
+        self.x = WIDTH // 2
+        self.y = HEIGHT // 2
 
         # Initial starting Velocity & Direction
         self.dx = .5
@@ -67,24 +68,19 @@ class Ball:
     def move(self, p1, p2):
         if int(self.y) <= 0:
             self.dy = -self.dy
-        if int(self.x) <= p1.rect.topright[0] and p1.rect.topright[1] <= int(self.y) <= p1.rect.bottomright[1]:
+        if p1.rect.topleft[0] <= int(self.x) <= p1.rect.topright[0] and p1.rect.topright[1] <= int(self.y) <= p1.rect.bottomright[1]:
             self.dx = -self.dx
-        if int(self.x) >= p2.rect.topleft[0] and p2.rect.topleft[1] <= int(self.y) <= p2.rect.bottomleft[1]:
+        if p2.rect.topright[0] >= int(self.x) >= p2.rect.topleft[0] and p2.rect.topleft[1] <= int(self.y) <= p2.rect.bottomleft[1]:
             self.dx = -self.dx
         if int(self.y) >= HEIGHT:
             self.dy = -self.dy
 
-        # if p1.rect.collidepoint(self.x, self.y):
-        #     self.dx = -self.dx
-        # if p1.rect.collidepoint(self.x, self.y):
-        #     self.dx = -self.dx
-
-        if self.x == 0:
-            self.reset(p1, p2)
+        if self.x <= 0:
             p2.score()
-        elif self.x == WIDTH:
             self.reset(p1, p2)
+        elif self.x >= WIDTH:
             p1.score()
+            self.reset(p1, p2)
 
         self.x += self.dx
         self.y += self.dy
@@ -92,8 +88,8 @@ class Ball:
     def reset(self, p1, p2):
         print(f"P1: {p1.goals} P2: {p2.goals}")
 
-        self.x = WIDTH / 2
-        self.y = HEIGHT / 2
+        self.x = WIDTH // 2
+        self.y = HEIGHT // 2
 
         # p1.reset()
         # p2.reset()
@@ -101,6 +97,52 @@ class Ball:
         # Initial starting Velocity & Direction
         self.dx = 0.5
         self.dy = round(random.uniform(-0.5, 0.5), 1)
+
+
+class Field:
+    """
+    Class for transforming the playing field into a 2D array.
+
+    There's a set chunksize in which the pixels are divided to.
+    Default, but slow: ball diameter -> self.ball.radius * 2
+
+    Divisions:
+    p1 - 1
+    p2 - 2
+    ball - 3
+    else - 0
+
+    """
+    def __init__(self, ball: Ball, p1: Player, p2: Player):
+        self.ball = ball
+        self.p1 = p1
+        self.p2 = p2
+
+        self.chunksize = self.ball.radius * 2 * 2
+
+        # Grid is a 2D-Array of 10-wide chunks (2*radius of ball)
+        self.grid = np.zeros(shape=((HEIGHT//self.chunksize), (WIDTH//self.chunksize)))
+
+    def update(self):
+        for y, row in enumerate(self.grid):
+            for x in range(len(row)):
+                # Update ball position in grid
+                if y == (self.ball.y // self.chunksize) and x == (self.ball.x // self.chunksize):
+                    self.grid[y][x] = 3
+                # All points in p1 are marked 1
+                elif (self.p1.rect.bottomleft[1] // self.chunksize) >= y >= (self.p1.y // self.chunksize) and (self.p1.rect.bottomleft[0] // self.chunksize) <= x <= (self.p1.rect.bottomright[0] // self.chunksize):
+                    self.grid[y][x] = 1
+                # All points in p2 are marked 2
+                elif (self.p2.rect.bottomleft[1] // self.chunksize) >= y >= (self.p2.y // self.chunksize) and (self.p2.rect.bottomleft[0] // self.chunksize) <= x <= (self.p2.rect.bottomright[0] // self.chunksize):
+                    self.grid[y][x] = 2
+                else:
+                    self.grid[y][x] = 0
+
+
+class Environment:
+    P_LENGTH = 20
+    #F_HEIGHT = HEIGHT // 20
+    P_WIDTH = 10
 
 
 def init():
@@ -123,6 +165,9 @@ def main():
     init()
     p1, p2 = Player(1), Player(2)
     ball = Ball()
+    f = Field(ball, p1, p2)
+
+    i = 1
 
     while 1:
         for event in pygame.event.get():
@@ -140,6 +185,11 @@ def main():
         ball.move(p1, p2)
 
         pygame.display.flip()
+
+        if i == 1:
+            f.update()
+            i = -1
+        i += 1
         pygame.time.wait(1)
 
 
