@@ -1,0 +1,32 @@
+Player attributes:
+
+player  int             1 || 2 -> Player number id
+length  int             player length
+width   int             player width
+x       int             player x-coord of top-left corner
+y       int             player y-coord of top-left corner
+dx      int             player's velocity on the x-Axis -> 0
+dy      int             player's velocity on the y-Axis
+goals   int             player's goals scored
+rect    pygame.Rect     rect(x,y,length,width) object -> can be used to determine collisions and corner coordinates.
+
+
+Player methods:
+
+changeDirection = 1 -> DOWN
+changeDirection = 0 -> UP
+move                -> moves player in dy direction until it hits a wall, changing dy to -dy
+
+Ball attributes:
+
+radius      int         radius of the ball
+x           int         x coordinate of center of ball
+y           int         y coordinate of center of ball
+dx          int, float  x velocity of ball
+dy          int, float  y velocity of ball
+
+
+Ball methods:
+
+reset               -> resets ball's x,y,dx,dy; displays score to console
+move                -> updates ball's x,y by dx and dy, and checks for collisions with players
